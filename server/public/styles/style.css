@@ -1,13 +1,54 @@
-.board {
+.container {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: 80vw 20vw;
+  align-items: center;
+  /* justify-items: center; */
+}
+
+.header {
+  grid-column: 1 / -1;
+}
+
+.game-board {
+  display: grid;
   grid-template-rows: repeat(8, 1fr);
-  border: 1px solid black;
+  border: 10px solid #14151E;
   height: 80vh;
   width: 80vh
 }
 
+.board-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.playable {
+  background-color: #2B2D42;
+}
+
 .board-space {
-  background: grey;
-  border: 1px solid black;
+  border: 1px solid #2B2D42;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+}
+
+.side-panel {
+  align-self: start;
+}
+
+.player-one-piece {
+  background-color: #17BEBB;
+  border: 2px solid #139C9A;
+  border-radius: 50%;
+  height: 70%;
+  width: 70%;
+}
+
+.player-two-piece {
+  background-color: #F79D65;
+  border: 2px solid #CB8153;
+  border-radius: 50%;
+  height: 70%;
+  width: 70%;
 }
