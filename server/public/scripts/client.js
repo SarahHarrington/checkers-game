@@ -5,7 +5,7 @@ let activePiece = null;
 let activePieceRow = null;
 
 for (let i = 0; i < boardSpaces.length; i++) {
-  boardSpaces[i].setAttribute('id', `space-${i}`);
+  boardSpaces[i].setAttribute('id', i + 1);
   boardSpaces[i].setAttribute('ondrop', 'dropHandler(event)');
   boardSpaces[i].setAttribute('ondragover', 'dragoverHandler(event)');
 }
@@ -31,32 +31,67 @@ function dragStartHandler(e) {
   // activePiece.style.cursor = '-webkit-grabbing';
 }
 
-function dropHandler(e) {
-  e.preventDefault();
-  console.log('drop target', e);
-  activePieceRow = activePiece.parentElement.parentElement.id;
-  
-  if (activePiece.classList.contains('player-one-piece')) {
-    console.log('player one!')
-    if (e.target.childElementCount === 0) {
-      if (e.target.parentElement.id > activePieceRow) {
-        e.target.appendChild(activePiece);
-      }
-    }
-  }
-  
-  if (activePiece.classList.contains('player-two-piece')) {
-    console.log('player two!')
-    if (e.target.childElementCount === 0) {
-      if (e.target.parentElement.id < activePieceRow) {
-        e.target.appendChild(activePiece);
-      }
-    }
-  }
-  activePiece = null;
-}
-
 function dragoverHandler(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = "move";
 }
+
+function dropHandler(e) {
+  e.preventDefault();
+  activePieceStart = parseInt(activePiece.parentElement.id);
+  activePieceRowStart = parseInt(activePiece.parentElement.parentElement.id);
+  activePieceEnd = parseInt(e.target.id);
+
+  // if (activePiece.classList.contains('player-one-piece')) {
+  //   console.log('player one!')
+  //   if (e.target.childElementCount === 0) {
+  //     console.log('checking the children')
+  //     if (e.target.parentElement.id > activePieceRow) {
+  //       console.log('checking the active row')
+  //       e.target.appendChild(activePiece);
+  //     }
+  //   }
+  // }
+
+  // if (activePiece.classList.contains('player-two-piece')) {
+  //   console.log('player two!')
+  //   if (e.target.childElementCount === 0) {
+  //     if (e.target.parentElement.id < activePieceRow) {
+  //       e.target.appendChild(activePiece);
+  //     }
+  //   }
+  // }
+
+  if (activePiece.classList.contains('player-one-piece')) {
+    console.log('player one!')
+    console.log(activePieceStart + 4);
+    console.log(activePieceEnd)
+    if (activePieceRowStart / 2 === 0) {
+      console.log('even row')
+      if (activePieceStart + 4 === activePieceEnd || activePieceStart + 5 === activePieceEnd) {
+        console.log('in the if')
+        e.target.appendChild(activePiece);
+        activePice = null;
+      }
+    }
+    if (activePieceRowStart / 2 !== 0) {
+      console.log('odd row')
+      if (activePieceStart + 3 == activePieceEnd || activePieceStart + 4 == activePieceEnd) {
+        console.log('in the if');
+        e.target.appendChild(activePiece);
+        activePice = null;
+      }
+    }
+  }
+
+  if (activePiece.classList.contains('player-two-piece')) {
+    console.log('player two!')
+  }
+
+  else {
+    console.log('you cannot do that')
+  }
+  activePiece = null;
+}
+
+
