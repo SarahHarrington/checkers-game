@@ -64,34 +64,38 @@ function dropHandler(e) {
 
   if (activePiece.classList.contains('player-one-piece')) {
     console.log('player one!')
-    console.log(activePieceStart + 4);
     console.log(activePieceEnd)
-    if (activePieceRowStart / 2 === 0) {
+    if (activePieceRowStart % 2 === 0) {
       console.log('even row')
       if (activePieceStart + 4 === activePieceEnd || activePieceStart + 5 === activePieceEnd) {
         console.log('in the if')
         e.target.appendChild(activePiece);
         activePice = null;
+        activePieceRowStart = null;
+        activePieceEnd = null;
       }
     }
-    if (activePieceRowStart / 2 !== 0) {
+    if (activePieceRowStart % 2 !== 0) {
       console.log('odd row')
-      if (activePieceStart + 3 == activePieceEnd || activePieceStart + 4 == activePieceEnd) {
+      if (activePieceStart + 3 === activePieceEnd || activePieceStart + 4 === activePieceEnd) {
         console.log('in the if');
         e.target.appendChild(activePiece);
         activePice = null;
+        activePieceRowStart = null;
+        activePieceEnd = null;
       }
     }
   }
 
-  if (activePiece.classList.contains('player-two-piece')) {
-    console.log('player two!')
+  else {
+    console.log('you cannot do that');
   }
 
-  else {
-    console.log('you cannot do that')
-  }
-  activePiece = null;
+  // if (activePiece.classList.contains('player-two-piece')) {
+  //   console.log('player two!')
+  // }
+
+  // activePiece = null;
 }
 
 
