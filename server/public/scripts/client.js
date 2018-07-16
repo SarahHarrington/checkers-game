@@ -2,6 +2,7 @@ console.log('javascript loaded');
 const boardRows = [...document.querySelectorAll('.board-row')];
 const boardSpaces = [...document.querySelectorAll('.playable')];
 let activePiece = null;
+let activePieceRow = null;
 
 for (let i = 0; i < boardSpaces.length; i++) {
   boardSpaces[i].setAttribute('id', `space-${i}`);
@@ -14,7 +15,6 @@ for (let i = 0; i <= 11; i++) {
   playerOnePiece.classList.add('player-one-piece');
   playerOnePiece.setAttribute('draggable', true);
   playerOnePiece.setAttribute('ondragstart', 'dragStartHandler(event)')
-  playerOnePiece.addEventListener('click', pieceSelected)
   boardSpaces[i].appendChild(playerOnePiece);
 }
 
@@ -23,36 +23,40 @@ for (let i = 20; i <= 31; i++) {
   playerTwoPiece.classList.add('player-two-piece');
   playerTwoPiece.setAttribute('draggable', true);
   playerTwoPiece.setAttribute('ondragstart', 'dragStartHandler(event)')
-  playerTwoPiece.addEventListener('click', pieceSelected)
   boardSpaces[i].appendChild(playerTwoPiece);
-}
-
-function pieceSelected(e) {
-  console.log(e.target.parentElement.parentElement.id) // logging id of parent element
-  console.log(e.target.parentElement.id)
-
-  if (e.target.classList.contains('player-one-piece')) {
-    console.log('player one!')
-  }
-  if (e.target.classList.contains('player-two-piece')) {
-    console.log('player two!')
-  }
 }
 
 function dragStartHandler(e) {
   activePiece = e.target;
+  // activePiece.style.cursor = '-webkit-grabbing';
 }
 
 function dropHandler(e) {
   e.preventDefault();
-  console.log('drop spot', e.target.parentElement.id);
+  console.log('drop target', e);
+  activePieceRow = activePiece.parentElement.parentElement.id;
   
-  e.target.appendChild(activePiece);
+  if (activePiece.classList.contains('player-one-piece')) {
+    console.log('player one!')
+    if (e.target.childElementCount === 0) {
+      if (e.target.parentElement.id > activePieceRow) {
+        e.target.appendChild(activePiece);
+      }
+    }
+  }
+  
+  if (activePiece.classList.contains('player-two-piece')) {
+    console.log('player two!')
+    if (e.target.childElementCount === 0) {
+      if (e.target.parentElement.id < activePieceRow) {
+        e.target.appendChild(activePiece);
+      }
+    }
+  }
   activePiece = null;
 }
 
 function dragoverHandler(e) {
   e.preventDefault();
-  console.log('dragging over', e.target.id)
   e.dataTransfer.dropEffect = "move";
 }
