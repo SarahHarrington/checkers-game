@@ -1,8 +1,11 @@
 console.log('javascript loaded');
 const boardRows = [...document.querySelectorAll('.board-row')];
 const boardSpaces = [...document.querySelectorAll('.playable')];
+const capturedPieces = document.querySelector('.captured-pieces');
 let activePiece = null;
 let activePieceRow = null;
+let jumpedSpace = null;
+let jumpedPiece = null;
 
 for (let i = 0; i < boardSpaces.length; i++) {
   boardSpaces[i].setAttribute('id', i + 1);
@@ -42,60 +45,88 @@ function dropHandler(e) {
   activePieceRowStart = parseInt(activePiece.parentElement.parentElement.id);
   activePieceEnd = parseInt(e.target.id);
 
-  // if (activePiece.classList.contains('player-one-piece')) {
-  //   console.log('player one!')
-  //   if (e.target.childElementCount === 0) {
-  //     console.log('checking the children')
-  //     if (e.target.parentElement.id > activePieceRow) {
-  //       console.log('checking the active row')
-  //       e.target.appendChild(activePiece);
-  //     }
-  //   }
-  // }
+  if (e.target.children.length < 1) {
+    if (activePiece.classList.contains('player-one-piece')) {
+      console.log('player one!')
+      if (activePieceStart + 7 === activePieceEnd) {
+        jumpedSpace = document.getElementById(`${activePieceStart + 3}`);
+        if (jumpedSpace.children.length > 0) {
+          e.target.appendChild(activePiece);
+          jumpedPiece = jumpedSpace.children[0];
+          jumpedSpace.removeChild(jumpedPiece);
+          capturedPieces.appendChild(jumpedPiece);
 
-  // if (activePiece.classList.contains('player-two-piece')) {
-  //   console.log('player two!')
-  //   if (e.target.childElementCount === 0) {
-  //     if (e.target.parentElement.id < activePieceRow) {
-  //       e.target.appendChild(activePiece);
-  //     }
-  //   }
-  // }
+        }
+      }
 
-  if (activePiece.classList.contains('player-one-piece')) {
+      if (activePieceStart + 9 === activePieceEnd) {
+        jumpedSpace = document.getElementById(`${activePieceStart + 4}`);
+        if (jumpedSpace.children.length > 0) {
+          e.target.appendChild(activePiece);
+          jumpedPiece = jumpedSpace.children[0];
+          jumpedSpace.removeChild(jumpedPiece);
+          capturedPieces.appendChild(jumpedPiece);
+        }
+      }
+
+      if (activePieceRowStart % 2 === 0) {
+        console.log('even row')
+        if (activePieceStart + 4 === activePieceEnd || activePieceStart + 5 === activePieceEnd) {
+          console.log('in the if')
+          e.target.appendChild(activePiece);
+        }
+
+      }
+      if (activePieceRowStart % 2 !== 0) {
+        console.log('odd row')
+        if (activePieceStart + 3 === activePieceEnd || activePieceStart + 4 === activePieceEnd) {
+          console.log('in the if');
+          e.target.appendChild(activePiece);
+        }
+      }
+    }
+  }
+
+  //player two logic
+  if (activePiece.classList.contains('player-two-piece')) {
     console.log('player one!')
     console.log(activePieceEnd)
+
+    if (activePieceStart - 7 === activePieceEnd) {
+      jumpedSpace = document.getElementById(`${activePieceStart - 4}`);
+      if (jumpedSpace.children.length > 0) {
+        e.target.appendChild(activePiece);
+        jumpedPiece = jumpedSpace.children[0];
+        jumpedSpace.removeChild(jumpedPiece);
+        capturedPieces.appendChild(jumpedPiece);
+      }
+    }
+    if (activePieceStart - 9 === activePieceEnd) {
+      jumpedSpace = document.getElementById(`${activePieceStart - 5}`);
+      if (jumpedSpace.children.length > 0) {
+        e.target.appendChild(activePiece);
+        jumpedPiece = jumpedSpace.children[0];
+        jumpedSpace.removeChild(jumpedPiece);
+        capturedPieces.appendChild(jumpedPiece);
+      }
+    }
     if (activePieceRowStart % 2 === 0) {
       console.log('even row')
-      if (activePieceStart + 4 === activePieceEnd || activePieceStart + 5 === activePieceEnd) {
+      if (activePieceStart - 4 === activePieceEnd || activePieceStart - 3 === activePieceEnd) {
         console.log('in the if')
         e.target.appendChild(activePiece);
-        activePice = null;
-        activePieceRowStart = null;
-        activePieceEnd = null;
       }
     }
     if (activePieceRowStart % 2 !== 0) {
       console.log('odd row')
-      if (activePieceStart + 3 === activePieceEnd || activePieceStart + 4 === activePieceEnd) {
+      if (activePieceStart - 5 === activePieceEnd || activePieceStart - 4 === activePieceEnd) {
         console.log('in the if');
         e.target.appendChild(activePiece);
-        activePice = null;
-        activePieceRowStart = null;
-        activePieceEnd = null;
       }
     }
   }
+  [activePiece, activePieceRowStart, activePieceEnd, jumpedSpace, jumpedPiece] = [null, null, null, null, null];
 
-  else {
-    console.log('you cannot do that');
-  }
-
-  // if (activePiece.classList.contains('player-two-piece')) {
-  //   console.log('player two!')
-  // }
-
-  // activePiece = null;
 }
 
 
