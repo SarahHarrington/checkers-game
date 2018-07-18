@@ -200,4 +200,6 @@ const validMoves = [
   },
 ]
 
-// export default validMoves;
+module.exports = {
+  validMoves: validMoves
+}
