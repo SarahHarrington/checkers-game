@@ -14,7 +14,7 @@ io.on('connection', socket => {
     console.log(currentTurn);
     //function to check possible moves based on player and send back to client
     let space = parseInt(currentTurn.activeSpace);
-    let possTurnMoves = validMoves[space].f;
+    let possTurnMoves = validMoves[space];
 
     io.emit('possTurnMoves', possTurnMoves);
 

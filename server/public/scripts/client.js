@@ -4,9 +4,7 @@ const boardRows = [...document.querySelectorAll('.board-row')];
 const boardSpaces = [...document.querySelectorAll('.playable')];
 const capturedPieces = document.querySelector('.captured-pieces');
 let activePiece = null;
-let activePieceRow = null;
-let jumpedSpace = null;
-let jumpedPiece = null;
+let possibleSpaces = [];
 
 let currentTurn = {
   player: null,
@@ -19,7 +17,6 @@ socket.on('newClientConnection', (data) => {
 
 for (let i = 0; i < boardSpaces.length; i++) {
   boardSpaces[i].setAttribute('id', i + 1);
-  // boardSpaces[i].setAttribute('ondrop', 'dropHandler(event)');
   boardSpaces[i].setAttribute('ondragover', 'dragoverHandler(event)');
 }
 
@@ -42,15 +39,17 @@ for (let i = 20; i <= 31; i++) {
 }
 
 function dragStartHandler(e) {
+  activePiece = e.target;
   currentTurn.activeSpace = e.target.parentElement.id;
   currentTurn.player = e.target.id;
   console.log(currentTurn);
   socket.emit('moving', currentTurn);
   socket.on('possTurnMoves', (data) => {
-    console.log(data);
-    data.forEach((space) => {
-      let possibleSpace = document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-    })
+    possibleSpaces = data;
+    console.log('data', data);
+    // data.forEach((space) => {
+    //   document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
+    // })
   })
 }
 
@@ -60,6 +59,13 @@ function dragoverHandler(e) {
 }
 
 function dropHandler(e) {
-  console.log(e);
+  console.log('space drop', e.target.id);
   e.preventDefault();
-}
+  document.getElementById(e.target.id).appendChild(activePiece);
+  possibleSpaces.forEach( (space) => {
+    document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+  })
+  activePiece = null;
+  currentTurn.player = null;
+  currentTurn.activeSpace = null;
+} 
