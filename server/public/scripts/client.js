@@ -38,6 +38,8 @@ for (let i = 20; i <= 31; i++) {
   boardSpaces[i].appendChild(playerTwoPiece);
 }
 
+let regMoves = [];
+let jumpMoves = [];
 function dragStartHandler(e) {
   activePiece = e.target;
   currentTurn.activeSpace = e.target.parentElement.id;
@@ -45,11 +47,16 @@ function dragStartHandler(e) {
   console.log(currentTurn);
   socket.emit('moving', currentTurn);
   socket.on('possTurnMoves', (data) => {
-    possibleSpaces = data;
     console.log('data', data);
-    // data.forEach((space) => {
-    //   document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-    // })
+    regMoves = [...data.reg];
+    jumpMoves = [...data.jump];
+    regMoves.forEach(space => {
+      document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
+    })
+    jumpMoves.forEach(space => {
+      document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
+    })
+    console.log('possibleSpaces', possibleSpaces);
   })
 }
 
@@ -62,7 +69,10 @@ function dropHandler(e) {
   console.log('space drop', e.target.id);
   e.preventDefault();
   document.getElementById(e.target.id).appendChild(activePiece);
-  possibleSpaces.forEach( (space) => {
+  regMoves.forEach( (space) => {
+    document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+  })
+  jumpMoves.forEach( (space) => {
     document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
   })
   activePiece = null;
