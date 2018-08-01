@@ -5,6 +5,9 @@ var io = require('socket.io')(server);
 
 const validMoves = require('./modules/valid_moves.js');
 
+let space = null;
+let player = null;
+
 app.use(express.static(`${__dirname}/public`));
 
 io.on('connection', socket => {
@@ -18,8 +21,8 @@ io.on('connection', socket => {
   socket.on('moving', currentTurn => {
     console.log(currentTurn);
     //function to check possible moves based on player and send back to client
-    let space = parseInt(currentTurn.activeSpace);
-    let player = currentTurn.player;
+    space = parseInt(currentTurn.activeSpace);
+    player = currentTurn.player;
     
     switch(player) {
       case 'p1':
@@ -30,6 +33,9 @@ io.on('connection', socket => {
         possTurns.reg = validMoves[space].r;
         possTurns.jump = validMoves[space].rj;
         break;
+      case 'king':
+        //code to send back will go here
+        break;
       default: 
         console.log('no valid moves');
     }
@@ -38,7 +44,23 @@ io.on('connection', socket => {
 
   })
 
+  socket.on('currentTurnEndCheck', endSpace => {
+    console.log('end space from client', endSpace);
 
+    const isJumping = possTurns.jump.filter(poss => (parseInt(poss) === parseInt(endSpace)));
+    console.log('isJumping', isJumping);
+
+    if (isJumping.length === 1) {
+      console.log('will do the things here');
+      if (possTurns.jump.length === 1) {
+        io.emit('checkTheJump', possTurns.reg[0]);
+      }
+      // 
+    }
+    else {
+      io.emit('playerTurnEnds', endSpace);
+    }
+  })
 });
 
 server.listen(5000);

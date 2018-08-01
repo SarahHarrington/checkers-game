@@ -4,7 +4,6 @@ const boardRows = [...document.querySelectorAll('.board-row')];
 const boardSpaces = [...document.querySelectorAll('.playable')];
 const capturedPieces = document.querySelector('.captured-pieces');
 let activePiece = null;
-let possibleSpaces = [];
 
 let currentTurn = {
   player: null,
@@ -56,7 +55,6 @@ function dragStartHandler(e) {
     jumpMoves.forEach(space => {
       document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
     })
-    console.log('possibleSpaces', possibleSpaces);
   })
 }
 
@@ -66,16 +64,35 @@ function dragoverHandler(e) {
 }
 
 function dropHandler(e) {
-  console.log('space drop', e.target.id);
   e.preventDefault();
-  document.getElementById(e.target.id).appendChild(activePiece);
-  regMoves.forEach( (space) => {
-    document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+  socket.emit('currentTurnEndCheck', e.target.id);
+
+  //this is for regular turns when the play ends.
+  socket.on('playerTurnEnds', endSpace => {
+    //appends piece to the new space
+    document.getElementById(endSpace).appendChild(activePiece);
+    //removes values from stuff
+    regMoves.forEach( (space) => {
+      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+    })
+    jumpMoves.forEach( (space) => {
+      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+    })
+    currentTurn.player = null;
+    currentTurn.activeSpace = null;
   })
-  jumpMoves.forEach( (space) => {
-    document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+
+  //this is for verifying if a piece is on a jumped space
+  socket.on('checkTheJump', jumpSpace => {
+    console.log('jumpSpace', jumpSpace)
+
+    let jumpingVerify = document.getElementById(jumpSpace);
+    console.log(jumpingVerify.children.length);
+    let pieceCaptured = jumpingVerify.firstChild;
+    console.log(jumpingVerify.firstChild.id);
+      //how do I check for p1 vs p2 here? Or send to server and get ok back?
+    jumpingVerify.removeChild(pieceCaptured);
+    capturedPieces.appendChild(pieceCaptured);
+    //fix captured pieces, they look ridiculous. :)
   })
-  activePiece = null;
-  currentTurn.player = null;
-  currentTurn.activeSpace = null;
 } 
