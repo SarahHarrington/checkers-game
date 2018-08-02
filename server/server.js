@@ -57,6 +57,9 @@ io.on('connection', socket => {
       }
       // 
     }
+    if (isJumping.length === 2) {
+      console.log('jumping with two options');
+    }
     else {
       io.emit('playerTurnEnds', endSpace);
     }
