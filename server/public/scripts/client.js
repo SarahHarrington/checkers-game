@@ -63,14 +63,16 @@ function dragoverHandler(e) {
   e.dataTransfer.dropEffect = "move";
 }
 
+let endingSpace = null;
 function dropHandler(e) {
   e.preventDefault();
   socket.emit('currentTurnEndCheck', e.target.id);
 
   //this is for regular turns when the play ends.
   socket.on('playerTurnEnds', endSpace => {
+    endingSpace = endSpace;
     //appends piece to the new space
-    document.getElementById(endSpace).appendChild(activePiece);
+    document.getElementById(endingSpace).appendChild(activePiece);
     //removes values from stuff
     regMoves.forEach( (space) => {
       document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
@@ -84,16 +86,18 @@ function dropHandler(e) {
 
   //this is for verifying if a piece is on a jumped space
   socket.on('checkTheJump', jumpSpace => {
-    console.log('jumpSpace', jumpSpace)
+    console.log('jumpSpace', jumpSpace);
 
     let jumpingVerify = document.getElementById(jumpSpace);
     console.log(jumpingVerify.children.length);
     let pieceCaptured = jumpingVerify.firstChild;
-    console.log(jumpingVerify.firstChild.id);
+    console.log(jumpingVerify.firstChild);
       //how do I check for p1 vs p2 here? Or send to server and get ok back?
     jumpingVerify.removeChild(pieceCaptured);
     capturedPieces.appendChild(pieceCaptured);
     //fix captured pieces, they look ridiculous. :)
+    document.getElementById(endingSpace).appendChild(activePiece);
+    activePiece = null;
   })
 
   socket.on('jumpSpaceToCheck', jumpedSpace => {

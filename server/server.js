@@ -58,7 +58,8 @@ io.on('connection', socket => {
     console.log('reg turn number at the index', possTurns.reg[indexOfJumped]);
 
     if (isJumping.length === 1) {
-      io.emit('jumpSpaceToCheck', possTurns.reg[indexOfJumped]);
+      console.log('in the jumping if')
+      io.emit('checkTheJump', possTurns.reg[indexOfJumped]);
     }
     else {
       io.emit('playerTurnEnds', endSpace);
