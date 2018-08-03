@@ -95,4 +95,8 @@ function dropHandler(e) {
     capturedPieces.appendChild(pieceCaptured);
     //fix captured pieces, they look ridiculous. :)
   })
+
+  socket.on('jumpSpaceToCheck', jumpedSpace => {
+    
+  })
 } 

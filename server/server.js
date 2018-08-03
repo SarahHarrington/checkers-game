@@ -50,15 +50,15 @@ io.on('connection', socket => {
     const isJumping = possTurns.jump.filter(poss => (parseInt(poss) === parseInt(endSpace)));
     console.log('isJumping', isJumping);
 
+    console.log('possjump count', possTurns.jump.length);
+
+    let indexOfJumped = possTurns.jump.findIndex(possTurn => possTurn === parseInt(endSpace));
+    console.log('indexOfJumped', indexOfJumped)
+    //need to determine index and then get index of the reg for sending back for verification 
+    console.log('reg turn number at the index', possTurns.reg[indexOfJumped]);
+
     if (isJumping.length === 1) {
-      console.log('will do the things here');
-      if (possTurns.jump.length === 1) {
-        io.emit('checkTheJump', possTurns.reg[0]);
-      }
-      // 
-    }
-    if (isJumping.length === 2) {
-      console.log('jumping with two options');
+      io.emit('jumpSpaceToCheck', possTurns.reg[indexOfJumped]);
     }
     else {
       io.emit('playerTurnEnds', endSpace);
