@@ -7,11 +7,25 @@ const validMoves = require('./modules/valid_moves.js');
 
 let space = null;
 let player = null;
+let top = false;
 
 app.use(express.static(`${__dirname}/public`));
 
 io.on('connection', socket => {
   console.log('a new client has connected');
+
+  socket.on('startingTheGame', () => {
+    let randomNumber = Math.floor(Math.random() * 10) +1;
+    console.log(randomNumber);
+    if (randomNumber <= 5) {
+      top = true;
+      io.emit('gameTurn', top);
+    }
+    if (randomNumber >= 6) {
+      top = false;
+      io.emit('gameTurn', top);
+    }
+  })
 
   let possTurns = {
     reg: null,
@@ -21,6 +35,7 @@ io.on('connection', socket => {
   socket.on('moving', currentTurn => {
     console.log(currentTurn);
     //function to check possible moves based on player and send back to client
+    
     space = parseInt(currentTurn.activeSpace);
     player = currentTurn.player;
     
@@ -40,31 +55,33 @@ io.on('connection', socket => {
         console.log('no valid moves');
     }
 
-    io.emit('possTurnMoves', possTurns);
-
+    if (currentTurn.jump === true) {
+      io.emit('additionalJump', possTurns);
+    }
+    else {
+      io.emit('possTurnMoves', possTurns);
+    }
   })
 
-  socket.on('currentTurnEndCheck', endSpace => {
-    console.log('end space from client', endSpace);
-
+  socket.on('checkIfJumping', endSpace => {
     const isJumping = possTurns.jump.filter(poss => (parseInt(poss) === parseInt(endSpace)));
-    console.log('isJumping', isJumping);
-
-    console.log('possjump count', possTurns.jump.length);
-
     let indexOfJumped = possTurns.jump.findIndex(possTurn => possTurn === parseInt(endSpace));
-    console.log('indexOfJumped', indexOfJumped)
-    //need to determine index and then get index of the reg for sending back for verification 
-    console.log('reg turn number at the index', possTurns.reg[indexOfJumped]);
 
     if (isJumping.length === 1) {
       console.log('in the jumping if')
       io.emit('checkTheJump', possTurns.reg[indexOfJumped]);
     }
     else {
-      io.emit('playerTurnEnds', endSpace);
+      top = !top;
+      io.emit('playerTurnEnds',{endingJump: false, top: top});
     }
+  });
+
+  socket.on('endTheJumpTurn', (endingJump) => {
+    top = !top;
+    io.emit('playerTurnEnds', {endingJump: endingJump, top: top});
   })
+
 });
 
 server.listen(5000);

@@ -16,7 +16,7 @@
     <div class="game-message"></div>
     <div class="game-board">
       <!-- Game Board-->
-      <div class="board-row" id="11">
+      <div class="board-row">
         <div class="board-space playable"></div>
         <div class="board-space"></div>
         <div class="board-space playable"></div>
@@ -27,7 +27,7 @@
         <div class="board-space"></div>
       </div>
 
-      <div class="board-row" id="2">
+      <div class="board-row">
         <div class="board-space"></div>
         <div class="board-space playable"></div>
         <div class="board-space"></div>
@@ -38,7 +38,7 @@
         <div class="board-space playable"></div>
       </div>
 
-      <div class="board-row" id="3">
+      <div class="board-row">
         <div class="board-space playable"></div>
         <div class="board-space"></div>
         <div class="board-space playable"></div>
@@ -49,7 +49,7 @@
         <div class="board-space"></div>
       </div>
 
-      <div class="board-row" id="4">
+      <div class="board-row">
         <div class="board-space"></div>
         <div class="board-space playable"></div>
         <div class="board-space"></div>
@@ -60,7 +60,7 @@
         <div class="board-space playable"></div>
       </div>
 
-      <div class="board-row" id="5">
+      <div class="board-row">
         <div class="board-space playable"></div>
         <div class="board-space"></div>
         <div class="board-space playable"></div>
@@ -82,7 +82,7 @@
         <div class="board-space playable"></div>
       </div>
 
-      <div class="board-row" id="7">
+      <div class="board-row">
         <div class="board-space playable"></div>
         <div class="board-space"></div>
         <div class="board-space playable"></div>
@@ -93,7 +93,7 @@
         <div class="board-space"></div>
       </div>
 
-      <div class="board-row" id="8">
+      <div class="board-row">
         <div class="board-space"></div>
         <div class="board-space playable"></div>
         <div class="board-space"></div>
@@ -104,11 +104,12 @@
         <div class="board-space playable"></div>
       </div>
 
-    </div>
+    </div
     <!-- END Game Board -->
     <div class="side-panel">
+      <div><button id='start-game'>Start Game!</button></div>
       <div>You are player: {}</div>
-      <div>Current Player</div>
+      <div id="current-turn">Current Player</div>
 
       <div class="captured-pieces">Stored Pieces</div>
     </div>

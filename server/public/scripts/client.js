@@ -1,20 +1,38 @@
 console.log('javascript loaded');
-const socket = io();
-const boardRows = [...document.querySelectorAll('.board-row')];
-const boardSpaces = [...document.querySelectorAll('.playable')];
-const capturedPieces = document.querySelector('.captured-pieces');
-const gameMessage = document.querySelector('.game-message');
-let endingSpace = null;
-let activePiece = null;
 
-let currentTurn = {
-  player: null,
-  activeSpace: null
-}
+
+
+//TODO: Set a timer for the message to display at the top
+//TODO: How many people are connected, is there a way to disable play for anyone who connects after initial two?
+//TODO: Rooms?
+//TODO: fix captured pieces, they look ridiculous. :)
+
+//for the websocket
+const socket = io();
 
 socket.on('newClientConnection', (data) => {
   console.log('a new client has connected');
 })
+
+//Board Things
+const boardSpaces = [...document.querySelectorAll('.playable')];
+const capturedPieces = document.querySelector('.captured-pieces');
+const gameMessage = document.querySelector('.game-message');
+const startGame = document.getElementById('start-game').addEventListener('click', startTheGame);
+const currentPlayerTurn = document.getElementById('current-turn');
+
+//Turn and space tracking
+let endingSpace = null;
+let activePiece = null;
+let currentTurn = {
+  player: null,
+  top: false,
+  activeSpace: null,
+  jump: false
+}
+let regMoves = [];
+let jumpMoves = [];
+let endingJump = false;
 
 for (let i = 0; i < boardSpaces.length; i++) {
   boardSpaces[i].setAttribute('id', i + 1);
@@ -23,32 +41,67 @@ for (let i = 0; i < boardSpaces.length; i++) {
 
 for (let i = 0; i <= 11; i++) {
   let playerOnePiece = document.createElement('div');
+  playerOnePiece.classList.add('game-piece');
   playerOnePiece.classList.add('player-one-piece');
   playerOnePiece.setAttribute('id', 'p1');
-  playerOnePiece.setAttribute('draggable', true);
-  playerOnePiece.setAttribute('ondragstart', 'dragStartHandler(event)')
   boardSpaces[i].appendChild(playerOnePiece);
 }
 
 for (let i = 20; i <= 31; i++) {
   let playerTwoPiece = document.createElement('div');
+  playerTwoPiece.classList.add('game-piece');
   playerTwoPiece.classList.add('player-two-piece');
   playerTwoPiece.setAttribute('id', 'p2');
-  playerTwoPiece.setAttribute('draggable', true);
-  playerTwoPiece.setAttribute('ondragstart', 'dragStartHandler(event)')
   boardSpaces[i].appendChild(playerTwoPiece);
 }
 
-let regMoves = [];
-let jumpMoves = [];
+//Player pieces
+const playerOnePieces = [...document.querySelectorAll('.player-one-piece')];
+const playerTwoPieces = [...document.querySelectorAll('.player-two-piece')];
+
+function startTheGame() {
+  socket.emit('startingTheGame');
+  socket.on('gameTurn', top => {
+    currentTurn.top = top;
+    changeTurn(currentTurn.top);
+  })
+}
+
+function changeTurn(top) {
+
+  if (top === true) {
+    playerOnePieces.forEach (piece => {
+      piece.setAttribute('draggable', true);
+      piece.setAttribute('ondragstart', 'dragStartHandler(event)');
+    })
+    playerTwoPieces.forEach(piece => {
+      piece.removeAttribute('draggable', true);
+      piece.removeAttribute('ondragstart', 'dragStartHandler(event)');
+    })
+    currentPlayerTurn.innerHTML = '<p>Player 1 Go!</p>'
+  }
+  if (top === false) {
+    playerTwoPieces.forEach (piece => {
+      piece.setAttribute('draggable', true);
+      piece.setAttribute('ondragstart', 'dragStartHandler(event)');
+    })
+    playerOnePieces.forEach(piece => {
+      piece.removeAttribute('draggable', true);
+      piece.removeAttribute('ondragstart', 'dragStartHandler(event)');
+    })
+    currentPlayerTurn.innerHTML = '<p>Player 2 Go!</p>'
+  }
+
+}
+
 function dragStartHandler(e) {
+  console.log(e.target.id);
   activePiece = e.target;
-  currentTurn.activeSpace = e.target.parentElement.id;
   currentTurn.player = e.target.id;
-  console.log(currentTurn);
+  currentTurn.activeSpace = e.target.parentElement.id;
   socket.emit('moving', currentTurn);
   socket.on('possTurnMoves', (data) => {
-    console.log('data', data);
+    console.log('got the spaces to move to', data);
     regMoves = [...data.reg];
     jumpMoves = [...data.jump];
     regMoves.forEach(space => {
@@ -57,6 +110,28 @@ function dragStartHandler(e) {
     jumpMoves.forEach(space => {
       document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
     })
+  })
+
+  socket.on('additionalJump', (data) => {
+    console.log('additonal jump data', data)
+    regMoves = [...data.reg];
+    jumpMoves = [...data.jump];
+    
+    if (jumpMoves.length === 1) {
+      if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
+        socket.emit('checkIfJumping', endingSpace);
+      }
+
+    }
+    if (jumpMoves.length === 2) {
+      if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
+        socket.emit('checkIfJumping', endingSpace);
+      }
+    }
+    else {
+      endingJump = true;
+      socket.emit('endTheJumpTurn', endingJump);
+    }
   })
 }
 
@@ -68,50 +143,49 @@ function dragoverHandler(e) {
 function dropHandler(e) {
   endingSpace = e.target.id;
   e.preventDefault();
-  socket.emit('currentTurnEndCheck', endingSpace);
+  let = childCheck = document.getElementById(`${endingSpace}`);
 
-  //this is for regular turns when the play ends.
-  socket.on('playerTurnEnds', endSpace => {
-    //appends piece to the new space
-    endTheTurn();
-  })
-
-  //this is for verifying if a piece is on a jumped space
-  socket.on('checkTheJump', jumpSpace => {
-    console.log('jumpSpace', jumpSpace); //the space being jumped
-    checkTheJumpSpace(jumpSpace);
-  })
+  if (childCheck.children.length >= 1 || e.target.classList.contains('game-piece')) {
+    gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+  }
+  else {
+    socket.emit('checkIfJumping', endingSpace);
+    //this is for regular turns when the play ends.
+    socket.on('playerTurnEnds', (turnEnds) => {
+      console.log('player turn ends', turnEnds)
+      //appends piece to the new space
+      endTheTurn(turnEnds);
+    })
+  
+    //this is for verifying if a piece is on a jumped space
+    socket.on('checkTheJump', jumpSpace => {
+      checkTheJumpSpace(jumpSpace);
+    })
+  childCheck = null;
+  }
 } 
 
 function checkTheJumpSpace(jumpSpace) {
   let jumpingVerify = document.getElementById(jumpSpace); 
-    console.log('jumped space children length', jumpingVerify.children.length);
     let pieceCaptured = jumpingVerify.firstChild;
-    // console.log('child id', jumpingVerify.firstChild.id);
-      //how do I check for p1 vs p2 here? Or send to server and get ok back?
-    if (jumpingVerify.children.length === 0) { // if the space doesn't have any children it sends this message
-      console.log('can not do that move');
-      gameMessage.innerHTML = '<p>You can\'t make that move</p>';
-    }
-
-    else if (pieceCaptured.id === activePiece.id) {
+    if (jumpingVerify.children.length === 0 || pieceCaptured.id === activePiece.id) { 
       gameMessage.innerHTML = '<p>You can\'t make that move</p>';
     }
 
     else {
       jumpingVerify.removeChild(pieceCaptured);
       capturedPieces.appendChild(pieceCaptured);
-      //TODO: fix captured pieces, they look ridiculous. :)
-      // console.log('ending space', endingSpace);
       document.getElementById(endingSpace).appendChild(activePiece);
-      activePiece = null;
-      //TODO: Check server for possible plays 
+      activePiece = endingSpace;
+      currentTurn.activeSpace = endingSpace;
+      currentTurn.jump = true;
+      socket.emit('moving', currentTurn);
     }
 }
 
-function endTheTurn() {
-  document.getElementById(endingSpace).appendChild(activePiece);
-    //removes values from stuff
+function endTheTurn(endTurn) {
+  console.log('in the end turn function', endTurn);
+  if (endTurn.endingJump === true) {
     regMoves.forEach( (space) => {
       document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
     })
@@ -120,4 +194,22 @@ function endTheTurn() {
     })
     currentTurn.player = null;
     currentTurn.activeSpace = null;
+    endingJump = false;
+    changeTurn(endTurn.top);
+  }
+  if (endTurn.endingJump === false) {
+    document.getElementById(endingSpace).appendChild(activePiece);
+      //removes values from stuff
+      regMoves.forEach( (space) => {
+        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+      })
+      jumpMoves.forEach( (space) => {
+        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+      })
+      currentTurn.player = null;
+      currentTurn.activeSpace = null;
+      changeTurn(endTurn.top);
+  }
 }
+
+
