@@ -73,13 +73,14 @@ io.on('connection', socket => {
     }
     else {
       top = !top;
-      io.emit('playerTurnEnds',{endingJump: false, top: top});
+      io.emit('playerTurnEnds',{endingJump: false, top: top, endSpace: endSpace});
     }
   });
 
   socket.on('endTheJumpTurn', (endingJump) => {
+    console.log('ending jump on server', endingJump);
     top = !top;
-    io.emit('playerTurnEnds', {endingJump: endingJump, top: top});
+    io.emit('playerTurnEnds', {endJump: endingJump.endingJump, top: top, endSpace: endingJump.endSpace});
   })
 
 });

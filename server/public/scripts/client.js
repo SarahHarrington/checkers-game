@@ -121,16 +121,23 @@ function dragStartHandler(e) {
       if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
         socket.emit('checkIfJumping', endingSpace);
       }
-
+      else {
+        endingJump = true;
+        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+      }
     }
     if (jumpMoves.length === 2) {
       if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
         socket.emit('checkIfJumping', endingSpace);
       }
+      else {
+        endingJump = true;
+        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+      }
     }
     else {
       endingJump = true;
-      socket.emit('endTheJumpTurn', endingJump);
+      socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   })
 }
@@ -197,8 +204,8 @@ function endTheTurn(endTurn) {
     endingJump = false;
     changeTurn(endTurn.top);
   }
-  if (endTurn.endingJump === false) {
-    document.getElementById(endingSpace).appendChild(activePiece);
+  else {
+    document.getElementById(parseInt(endTurn.endSpace)).appendChild(activePiece);
       //removes values from stuff
       regMoves.forEach( (space) => {
         document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
