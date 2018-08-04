@@ -3,6 +3,8 @@ const socket = io();
 const boardRows = [...document.querySelectorAll('.board-row')];
 const boardSpaces = [...document.querySelectorAll('.playable')];
 const capturedPieces = document.querySelector('.captured-pieces');
+const gameMessage = document.querySelector('.game-message');
+let endingSpace = null;
 let activePiece = null;
 
 let currentTurn = {
@@ -63,16 +65,52 @@ function dragoverHandler(e) {
   e.dataTransfer.dropEffect = "move";
 }
 
-let endingSpace = null;
 function dropHandler(e) {
+  endingSpace = e.target.id;
   e.preventDefault();
-  socket.emit('currentTurnEndCheck', e.target.id);
+  socket.emit('currentTurnEndCheck', endingSpace);
 
   //this is for regular turns when the play ends.
   socket.on('playerTurnEnds', endSpace => {
-    endingSpace = endSpace;
     //appends piece to the new space
-    document.getElementById(endingSpace).appendChild(activePiece);
+    endTheTurn();
+  })
+
+  //this is for verifying if a piece is on a jumped space
+  socket.on('checkTheJump', jumpSpace => {
+    console.log('jumpSpace', jumpSpace); //the space being jumped
+    checkTheJumpSpace(jumpSpace);
+  })
+} 
+
+function checkTheJumpSpace(jumpSpace) {
+  let jumpingVerify = document.getElementById(jumpSpace); 
+    console.log('jumped space children length', jumpingVerify.children.length);
+    let pieceCaptured = jumpingVerify.firstChild;
+    // console.log('child id', jumpingVerify.firstChild.id);
+      //how do I check for p1 vs p2 here? Or send to server and get ok back?
+    if (jumpingVerify.children.length === 0) { // if the space doesn't have any children it sends this message
+      console.log('can not do that move');
+      gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+    }
+
+    else if (pieceCaptured.id === activePiece.id) {
+      gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+    }
+
+    else {
+      jumpingVerify.removeChild(pieceCaptured);
+      capturedPieces.appendChild(pieceCaptured);
+      //TODO: fix captured pieces, they look ridiculous. :)
+      // console.log('ending space', endingSpace);
+      document.getElementById(endingSpace).appendChild(activePiece);
+      activePiece = null;
+      //TODO: Check server for possible plays 
+    }
+}
+
+function endTheTurn() {
+  document.getElementById(endingSpace).appendChild(activePiece);
     //removes values from stuff
     regMoves.forEach( (space) => {
       document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
@@ -82,25 +120,4 @@ function dropHandler(e) {
     })
     currentTurn.player = null;
     currentTurn.activeSpace = null;
-  })
-
-  //this is for verifying if a piece is on a jumped space
-  socket.on('checkTheJump', jumpSpace => {
-    console.log('jumpSpace', jumpSpace);
-
-    let jumpingVerify = document.getElementById(jumpSpace);
-    console.log(jumpingVerify.children.length);
-    let pieceCaptured = jumpingVerify.firstChild;
-    console.log(jumpingVerify.firstChild);
-      //how do I check for p1 vs p2 here? Or send to server and get ok back?
-    jumpingVerify.removeChild(pieceCaptured);
-    capturedPieces.appendChild(pieceCaptured);
-    //fix captured pieces, they look ridiculous. :)
-    document.getElementById(endingSpace).appendChild(activePiece);
-    activePiece = null;
-  })
-
-  socket.on('jumpSpaceToCheck', jumpedSpace => {
-    
-  })
-} 
+}

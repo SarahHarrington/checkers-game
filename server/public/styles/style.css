@@ -9,6 +9,11 @@
   grid-column: 1 / -1;
 }
 
+.game-message {
+  grid-column: 1 / -1;
+  height: 5vh;
+}
+
 .game-board {
   display: grid;
   grid-template-rows: repeat(8, 1fr);
