@@ -68,9 +68,7 @@ socket.on('gameTurn', top => {
 })
 
 function changeTurn(top) {
-  console.log('top in the change turn', top)
   if (top === true) {
-    console.log('player one if')
     playerOnePieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -82,7 +80,6 @@ function changeTurn(top) {
     currentPlayerTurn.innerHTML = '<p>Player 1 Go!</p>'
   }
   if (top === false) {
-    console.log('player two if')
     playerTwoPieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -114,12 +111,12 @@ socket.on('possTurnMoves', (data) => {
 })
 
 socket.on('additionalJump', (data) => {
-  console.log('in the additional jump');
   regMoves = [...data.reg];
   jumpMoves = [...data.jump];
-  console.log('jumpmoves.length', jumpMoves.length);
+  
   if (jumpMoves.length === 1) {
-    if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
+    let reg
+    if (document.getElementById(`${jumpMoves[0]}`).children.length === 0) {
       socket.emit('checkIfJumping', endingSpace);
     }
     else {
@@ -129,26 +126,25 @@ socket.on('additionalJump', (data) => {
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
-  //TODO: This isn't working right
   if (jumpMoves.length === 2) {
-    if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
-      socket.emit('checkIfJumping', endingSpace);
+    let jumpMovesLeft = document.getElementById(`${jumpMoves[0]}`).children.length;
+    let jumpMovesRight = document.getElementById(`${jumpMoves[1]}`).children.length;
+    if (jumpMovesLeft === 0 || jumpMovesRight === 0) {
+      //does nothing so turn stays active
     }
     else {
-      console.log('in the else of 2')
       endingJump = true;
       currentTurn.jump = false;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
-  // else {
-  //   endingJump = true;
-  //   socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-  // }
+  else {
+    endingJump = true;
+    socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+  }
 })
 
 socket.on('playerTurnEnds', (turnEnds) => {
-  console.log('socket turn end', turnEnds);
   endTheTurn(turnEnds);
 })
 
@@ -199,9 +195,7 @@ function checkTheJumpSpace(jumpSpace) {
 
 function endTheTurn(endTurn) {
   let finalSpace = endTurn.endSpace;
-  console.log('in the end turn function', endingSpace);
   if (endTurn.endJump === true) {
-    console.log('ending jump in the endTheTurnFunction')
     regMoves.forEach( (space) => {
       document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
     })
@@ -216,9 +210,7 @@ function endTheTurn(endTurn) {
     changeTurn(endTurn.top);
   }
   else {
-    console.log('in the else of the endTheTurn function', endingSpace)
     document.getElementById(endingSpace).appendChild(activePiece);
-      //removes values from stuff
       regMoves.forEach( (space) => {
         document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
       })
@@ -230,7 +222,6 @@ function endTheTurn(endTurn) {
       endingJump = false;
       activeSpace = null;
       activePiece = null;
-      // endingSpace = null;
       changeTurn(endTurn.top);
   }
 }

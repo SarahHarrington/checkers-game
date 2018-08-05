@@ -21,7 +21,6 @@ io.on('connection', socket => {
 
   socket.on('startingTheGame', () => {
     let randomNumber = Math.floor(Math.random() * 10) +1;
-    console.log(randomNumber);
     if (randomNumber <= 5) {
       top = true;
       io.emit('gameTurn', top);
@@ -33,13 +32,11 @@ io.on('connection', socket => {
   })
 
   socket.on('moving', currentTurn => {
-    console.log('socket moving')
     turnStart(currentTurn);
   })
 
   socket.on('jumpingMoving', currentTurn => {
     turnStart(currentTurn);
-    console.log('what do I do here?')
     if (currentTurn.jump === true) {
       io.emit('additionalJump', possTurns);
     }
@@ -55,7 +52,6 @@ io.on('connection', socket => {
     let indexOfJumped = possTurns.jump.findIndex(possTurn => possTurn === parseInt(endSpace));
 
     if (isJumping.length === 1) {
-      console.log('in the jumping if')
       io.emit('checkTheJump', possTurns.reg[indexOfJumped]);
     }
     else {
@@ -65,17 +61,14 @@ io.on('connection', socket => {
   });
 
   socket.on('endTheJumpTurn', (endJump) => {
-    console.log('ending jump on server', endJump);
     top = !top;
     io.emit('playerEndingJumpTurn', {endJump: endJump.endingJump, top: top, endSpace: endJump.endSpace});
   })
 
+
 });
 
-function turnStart(currentTurn) {
-  console.log('turn start function', currentTurn);
-  //function to check possible moves based on player and send back to client
-  
+function turnStart(currentTurn) {  
   space = parseInt(currentTurn.activeSpace);
   player = currentTurn.player;
   
@@ -92,7 +85,6 @@ function turnStart(currentTurn) {
       //code to send back will go here
       break;
     default: 
-      console.log('no valid moves');
   }
 
   io.emit('possTurnMoves', possTurns);
