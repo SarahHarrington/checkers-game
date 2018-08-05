@@ -40,7 +40,12 @@ io.on('connection', socket => {
   socket.on('jumpingMoving', currentTurn => {
     turnStart(currentTurn);
     console.log('what do I do here?')
-    io.emit('additionalJump', possTurns);
+    if (currentTurn.jump === true) {
+      io.emit('additionalJump', possTurns);
+    }
+    else {
+      io.emit('possTurnMoves', possTurns);
+    }
   })
 
   
@@ -91,12 +96,7 @@ function turnStart(currentTurn) {
   }
 
   io.emit('possTurnMoves', possTurns);
-  // if (currentTurn.jump === true) {
-  //   io.emit('additionalJump', possTurns);
-  // }
-  // else {
-  //   io.emit('possTurnMoves', possTurns);
-  // }
+
 }
 
 server.listen(5000);

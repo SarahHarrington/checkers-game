@@ -122,6 +122,7 @@ socket.on('additionalJump', (data) => {
       socket.emit('checkIfJumping', endingSpace);
     }
     else {
+      console.log('in the else of 2')
       endingJump = true;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
@@ -131,6 +132,7 @@ socket.on('additionalJump', (data) => {
       socket.emit('checkIfJumping', endingSpace);
     }
     else {
+      console.log('in the else of 2')
       endingJump = true;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
