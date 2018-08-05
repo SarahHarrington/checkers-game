@@ -1,7 +1,5 @@
 console.log('javascript loaded');
 
-
-
 //TODO: Set a timer for the message to display at the top
 //TODO: How many people are connected, is there a way to disable play for anyone who connects after initial two?
 //TODO: Rooms?
@@ -61,15 +59,18 @@ const playerTwoPieces = [...document.querySelectorAll('.player-two-piece')];
 
 function startTheGame() {
   socket.emit('startingTheGame');
-  socket.on('gameTurn', top => {
-    currentTurn.top = top;
-    changeTurn(currentTurn.top);
-  })
 }
 
-function changeTurn(top) {
+socket.on('gameTurn', top => {
+  console.log('game turn socket', top);
+  currentTurn.top = top;
+  changeTurn(currentTurn.top);
+})
 
+function changeTurn(top) {
+  console.log('top in the change turn', top)
   if (top === true) {
+    console.log('player one if')
     playerOnePieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -81,6 +82,7 @@ function changeTurn(top) {
     currentPlayerTurn.innerHTML = '<p>Player 1 Go!</p>'
   }
   if (top === false) {
+    console.log('player two if')
     playerTwoPieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -91,56 +93,62 @@ function changeTurn(top) {
     })
     currentPlayerTurn.innerHTML = '<p>Player 2 Go!</p>'
   }
-
 }
 
 function dragStartHandler(e) {
-  console.log(e.target.id);
   activePiece = e.target;
   currentTurn.player = e.target.id;
   currentTurn.activeSpace = e.target.parentElement.id;
   socket.emit('moving', currentTurn);
-  socket.on('possTurnMoves', (data) => {
-    console.log('got the spaces to move to', data);
-    regMoves = [...data.reg];
-    jumpMoves = [...data.jump];
-    regMoves.forEach(space => {
-      document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-    })
-    jumpMoves.forEach(space => {
-      document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-    })
-  })
+}
 
-  socket.on('additionalJump', (data) => {
-    console.log('additonal jump data', data)
-    regMoves = [...data.reg];
-    jumpMoves = [...data.jump];
-    
-    if (jumpMoves.length === 1) {
-      if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
-        socket.emit('checkIfJumping', endingSpace);
-      }
-      else {
-        endingJump = true;
-        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-      }
-    }
-    if (jumpMoves.length === 2) {
-      if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
-        socket.emit('checkIfJumping', endingSpace);
-      }
-      else {
-        endingJump = true;
-        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-      }
+socket.on('possTurnMoves', (data) => {
+  regMoves = [...data.reg];
+  jumpMoves = [...data.jump];
+  regMoves.forEach(space => {
+    document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
+  })
+  jumpMoves.forEach(space => {
+    document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
+  })
+})
+
+socket.on('additionalJump', (data) => {
+  regMoves = [...data.reg];
+  jumpMoves = [...data.jump];
+  
+  if (jumpMoves.length === 1) {
+    if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
+      socket.emit('checkIfJumping', endingSpace);
     }
     else {
       endingJump = true;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
-  })
-}
+  }
+  if (jumpMoves.length === 2) {
+    if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
+      socket.emit('checkIfJumping', endingSpace);
+    }
+    else {
+      endingJump = true;
+      socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+    }
+  }
+  else {
+    endingJump = true;
+    socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+  }
+})
+
+socket.on('playerTurnEnds', (turnEnds) => {
+  console.log('socket turn end', turnEnds);
+  endTheTurn(turnEnds);
+})
+
+socket.on('checkTheJump', jumpSpace => {
+  checkTheJumpSpace(jumpSpace);
+})
 
 function dragoverHandler(e) {
   e.preventDefault();
@@ -158,16 +166,6 @@ function dropHandler(e) {
   else {
     socket.emit('checkIfJumping', endingSpace);
     //this is for regular turns when the play ends.
-    socket.on('playerTurnEnds', (turnEnds) => {
-      console.log('player turn ends', turnEnds)
-      //appends piece to the new space
-      endTheTurn(turnEnds);
-    })
-  
-    //this is for verifying if a piece is on a jumped space
-    socket.on('checkTheJump', jumpSpace => {
-      checkTheJumpSpace(jumpSpace);
-    })
   childCheck = null;
   }
 } 
@@ -183,7 +181,7 @@ function checkTheJumpSpace(jumpSpace) {
       jumpingVerify.removeChild(pieceCaptured);
       capturedPieces.appendChild(pieceCaptured);
       document.getElementById(endingSpace).appendChild(activePiece);
-      activePiece = endingSpace;
+      // activeSpace = endingSpace;
       currentTurn.activeSpace = endingSpace;
       currentTurn.jump = true;
       socket.emit('moving', currentTurn);
@@ -192,29 +190,36 @@ function checkTheJumpSpace(jumpSpace) {
 
 function endTheTurn(endTurn) {
   console.log('in the end turn function', endTurn);
-  if (endTurn.endingJump === true) {
+  if (endTurn.endJump === true) {
+    console.log('ending jump in the endTheTurnFunction')
     regMoves.forEach( (space) => {
-      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
     })
     jumpMoves.forEach( (space) => {
-      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
     })
     currentTurn.player = null;
     currentTurn.activeSpace = null;
     endingJump = false;
+    activeSpace = null;
+    activePiece = null;
     changeTurn(endTurn.top);
   }
   else {
-    document.getElementById(parseInt(endTurn.endSpace)).appendChild(activePiece);
+    console.log('in the else of the endTheTurn function')
+    document.getElementById(endTurn.endSpace).appendChild(activePiece);
       //removes values from stuff
       regMoves.forEach( (space) => {
-        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
       })
       jumpMoves.forEach( (space) => {
-        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event');
+        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
       })
       currentTurn.player = null;
       currentTurn.activeSpace = null;
+      endingJump = false;
+      activeSpace = null;
+      activePiece = null;
       changeTurn(endTurn.top);
   }
 }
