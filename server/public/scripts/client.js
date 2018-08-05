@@ -114,9 +114,10 @@ socket.on('possTurnMoves', (data) => {
 })
 
 socket.on('additionalJump', (data) => {
+  console.log('in the additional jump');
   regMoves = [...data.reg];
   jumpMoves = [...data.jump];
-  
+  console.log('jumpmoves.length', jumpMoves.length);
   if (jumpMoves.length === 1) {
     if (document.getElementById(`${regMoves[0]}`).children.length === 0) {
       socket.emit('checkIfJumping', endingSpace);
@@ -124,9 +125,11 @@ socket.on('additionalJump', (data) => {
     else {
       console.log('in the else of 2')
       endingJump = true;
+      currentTurn.jump = false;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
+  //TODO: This isn't working right
   if (jumpMoves.length === 2) {
     if (document.getElementById(`${regMoves[0]}`).children.length === 0 || document.getElementById(`${regMoves[1]}`).children.length === 0) {
       socket.emit('checkIfJumping', endingSpace);
@@ -134,6 +137,7 @@ socket.on('additionalJump', (data) => {
     else {
       console.log('in the else of 2')
       endingJump = true;
+      currentTurn.jump = false;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
