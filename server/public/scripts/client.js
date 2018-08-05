@@ -115,12 +115,11 @@ socket.on('additionalJump', (data) => {
   jumpMoves = [...data.jump];
   
   if (jumpMoves.length === 1) {
-    let reg
-    if (document.getElementById(`${jumpMoves[0]}`).children.length === 0) {
-      socket.emit('checkIfJumping', endingSpace);
+    let jumpMoveCheck = document.getElementById(`${jumpMoves[0]}`).children.length;
+    if (jumpMoveCheck === 0) {
+      // socket.emit('checkIfJumping', endingSpace);
     }
     else {
-      console.log('in the else of 2')
       endingJump = true;
       currentTurn.jump = false;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
