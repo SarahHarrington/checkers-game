@@ -135,14 +135,18 @@ socket.on('additionalJump', (data) => {
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
-  else {
-    endingJump = true;
-    socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-  }
+  // else {
+  //   endingJump = true;
+  //   socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+  // }
 })
 
 socket.on('playerTurnEnds', (turnEnds) => {
   console.log('socket turn end', turnEnds);
+  endTheTurn(turnEnds);
+})
+
+socket.on('playerEndingJumpTurn', (turnEnds) => {
   endTheTurn(turnEnds);
 })
 
@@ -181,15 +185,15 @@ function checkTheJumpSpace(jumpSpace) {
       jumpingVerify.removeChild(pieceCaptured);
       capturedPieces.appendChild(pieceCaptured);
       document.getElementById(endingSpace).appendChild(activePiece);
-      // activeSpace = endingSpace;
       currentTurn.activeSpace = endingSpace;
       currentTurn.jump = true;
-      socket.emit('moving', currentTurn);
+      socket.emit('jumpingMoving', currentTurn);
     }
 }
 
 function endTheTurn(endTurn) {
-  console.log('in the end turn function', endTurn);
+  let finalSpace = endTurn.endSpace;
+  console.log('in the end turn function', endingSpace);
   if (endTurn.endJump === true) {
     console.log('ending jump in the endTheTurnFunction')
     regMoves.forEach( (space) => {
@@ -206,8 +210,8 @@ function endTheTurn(endTurn) {
     changeTurn(endTurn.top);
   }
   else {
-    console.log('in the else of the endTheTurn function')
-    document.getElementById(endTurn.endSpace).appendChild(activePiece);
+    console.log('in the else of the endTheTurn function', endingSpace)
+    document.getElementById(endingSpace).appendChild(activePiece);
       //removes values from stuff
       regMoves.forEach( (space) => {
         document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
@@ -220,6 +224,7 @@ function endTheTurn(endTurn) {
       endingJump = false;
       activeSpace = null;
       activePiece = null;
+      // endingSpace = null;
       changeTurn(endTurn.top);
   }
 }

@@ -11,6 +11,11 @@ let top = false;
 
 app.use(express.static(`${__dirname}/public`));
 
+let possTurns = {
+  reg: null,
+  jump: null
+}
+
 io.on('connection', socket => {
   console.log('a new client has connected');
 
@@ -27,41 +32,18 @@ io.on('connection', socket => {
     }
   })
 
-  let possTurns = {
-    reg: null,
-    jump: null
-  }
-
   socket.on('moving', currentTurn => {
-    console.log(currentTurn);
-    //function to check possible moves based on player and send back to client
-    
-    space = parseInt(currentTurn.activeSpace);
-    player = currentTurn.player;
-    
-    switch(player) {
-      case 'p1':
-        possTurns.reg = validMoves[space].f;
-        possTurns.jump = validMoves[space].fj;
-        break;
-      case 'p2': 
-        possTurns.reg = validMoves[space].r;
-        possTurns.jump = validMoves[space].rj;
-        break;
-      case 'king':
-        //code to send back will go here
-        break;
-      default: 
-        console.log('no valid moves');
-    }
-
-    if (currentTurn.jump === true) {
-      io.emit('additionalJump', possTurns);
-    }
-    else {
-      io.emit('possTurnMoves', possTurns);
-    }
+    console.log('socket moving')
+    turnStart(currentTurn);
   })
+
+  socket.on('jumpingMoving', currentTurn => {
+    turnStart(currentTurn);
+    console.log('what do I do here?')
+    io.emit('additionalJump', possTurns);
+  })
+
+  
 
   socket.on('checkIfJumping', endSpace => {
     const isJumping = possTurns.jump.filter(poss => (parseInt(poss) === parseInt(endSpace)));
@@ -80,10 +62,42 @@ io.on('connection', socket => {
   socket.on('endTheJumpTurn', (endJump) => {
     console.log('ending jump on server', endJump);
     top = !top;
-    io.emit('playerTurnEnds', {endJump: endJump.endingJump, top: top, endSpace: endJump.endSpace});
+    io.emit('playerEndingJumpTurn', {endJump: endJump.endingJump, top: top, endSpace: endJump.endSpace});
   })
 
 });
+
+function turnStart(currentTurn) {
+  console.log('turn start function', currentTurn);
+  //function to check possible moves based on player and send back to client
+  
+  space = parseInt(currentTurn.activeSpace);
+  player = currentTurn.player;
+  
+  switch(player) {
+    case 'p1':
+      possTurns.reg = validMoves[space].f;
+      possTurns.jump = validMoves[space].fj;
+      break;
+    case 'p2': 
+      possTurns.reg = validMoves[space].r;
+      possTurns.jump = validMoves[space].rj;
+      break;
+    case 'king':
+      //code to send back will go here
+      break;
+    default: 
+      console.log('no valid moves');
+  }
+
+  io.emit('possTurnMoves', possTurns);
+  // if (currentTurn.jump === true) {
+  //   io.emit('additionalJump', possTurns);
+  // }
+  // else {
+  //   io.emit('possTurnMoves', possTurns);
+  // }
+}
 
 server.listen(5000);
 console.log('listening on server');
