@@ -61,6 +61,7 @@ io.on('connection', socket => {
   });
 
   socket.on('endTheJumpTurn', (endJump) => {
+    console.log('endTheJumpTurn', endJump);
     top = !top;
     io.emit('playerEndingJumpTurn', {endJump: endJump.endingJump, top: top, endSpace: endJump.endSpace});
   })
