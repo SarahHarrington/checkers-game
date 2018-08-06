@@ -101,6 +101,7 @@ function dragStartHandler(e) {
 }
 
 socket.on('possTurnMoves', (data) => {
+  console.log('possible turn moves', data);
   regMoves = [...data.reg];
   jumpMoves = [...data.jump];
   regMoves.forEach(space => {
