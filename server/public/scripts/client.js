@@ -252,9 +252,7 @@ function endTheTurn(endTurn) {
     })
     currentTurn.player = null;
     currentTurn.activeSpace = null;
-    endingJump = false;
-    activeSpace = null;
-    activePiece = null;
+    [endingJump, activeSpace, activePiece] = [false, null, null];
     changeTurn(endTurn.top);
   }
   else {
@@ -267,9 +265,7 @@ function endTheTurn(endTurn) {
       })
       currentTurn.player = null;
       currentTurn.activeSpace = null;
-      endingJump = false;
-      activeSpace = null;
-      activePiece = null;
+      [endingJump, activeSpace, activePiece] = [false, null, null];
       changeTurn(endTurn.top);
   }
 }
