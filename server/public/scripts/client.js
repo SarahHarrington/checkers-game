@@ -62,13 +62,13 @@ function startTheGame() {
 }
 
 socket.on('gameTurn', top => {
-  console.log('game turn socket', top);
   currentTurn.top = top;
   changeTurn(currentTurn.top);
 })
 
 function changeTurn(top) {
   if (top === true) {
+    console.log('player 1 turn -------------------------------------');
     playerOnePieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -80,6 +80,7 @@ function changeTurn(top) {
     currentPlayerTurn.innerHTML = '<p>Player 1 Go!</p>'
   }
   if (top === false) {
+    console.log('player 2 turn -------------------------------------');
     playerTwoPieces.forEach (piece => {
       piece.setAttribute('draggable', true);
       piece.setAttribute('ondragstart', 'dragStartHandler(event)');
@@ -115,9 +116,16 @@ socket.on('additionalJump', (data) => {
   jumpMoves = [...data.jump];
   
   if (jumpMoves.length === 1) {
+    console.log('jumpmoves = 1')
     let jumpMoveCheck = document.getElementById(`${jumpMoves[0]}`).children.length;
-    if (jumpMoveCheck === 0) {
+    let jumpRegCheck = document.getElementById(`${regMoves[0]}`).children.length;
+
+    console.log('jumpMoveCheck', jumpMoveCheck);
+    console.log('jumpRegCheck', jumpRegCheck);
+    if (jumpMoveCheck === 0 && jumpRegCheck === 1) {
       // socket.emit('checkIfJumping', endingSpace);
+      console.log('in the if to let play continue on one spots')
+
     }
     else {
       endingJump = true;
@@ -126,10 +134,20 @@ socket.on('additionalJump', (data) => {
     }
   }
   if (jumpMoves.length === 2) {
+    console.log('jumpmoves = 2');
     let jumpMovesLeft = document.getElementById(`${jumpMoves[0]}`).children.length;
     let jumpMovesRight = document.getElementById(`${jumpMoves[1]}`).children.length;
-    if (jumpMovesLeft === 0 || jumpMovesRight === 0) {
-      //does nothing so turn stays active
+    let jumpSpaceLeft = document.getElementById(`${regMoves[0]}`).children.length;
+    let jumpSpaceRight = document.getElementById(`${regMoves[1]}`).children.length;
+
+    console.log('jumpMovesLeft', jumpMovesLeft);
+    console.log('jumpMovesRight', jumpMovesRight);
+    console.log('jumpSpaceLeft', jumpSpaceLeft);
+    console.log('jumpSpaceRight', jumpSpaceRight);
+    if ((jumpMovesLeft === 0 && jumpSpaceLeft === 0) || (jumpMovesRight === 1 && jumpSpaceRight === 1)) {
+      //something here
+      console.log('in the if to let play continue on two spots')
+
     }
     else {
       endingJump = true;
@@ -193,6 +211,7 @@ function checkTheJumpSpace(jumpSpace) {
 }
 
 function endTheTurn(endTurn) {
+  console.log('ending the turn')
   let finalSpace = endTurn.endSpace;
   if (endTurn.endJump === true) {
     regMoves.forEach( (space) => {
