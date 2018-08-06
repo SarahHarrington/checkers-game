@@ -104,9 +104,11 @@ socket.on('possTurnMoves', (data) => {
   regMoves = [...data.reg];
   jumpMoves = [...data.jump];
   regMoves.forEach(space => {
+    console.log('reg space in poss turns', space)
     document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
   })
   jumpMoves.forEach(space => {
+    console.log('jump space in poss turns', space)
     document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
   })
 })
@@ -126,12 +128,17 @@ socket.on('additionalJump', (data) => {
 
     let jumpMoveCheck = document.getElementById(`${jumpMoves[0]}`).children.length;
     let jumpRegCheck = document.getElementById(`${regMoves[0]}`).children.length;
-    let jumpAttackCheck = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
 
-    if (jumpMoveCheck === 0 && jumpRegCheck === 1 && jumpAttackCheck === currentTurn.player) {
-      // socket.emit('checkIfJumping', endingSpace);
-      console.log('in the if to let play continue on one spots')
-
+    if (jumpMoveCheck === 0 && jumpRegCheck === 1) {
+      let jumpAttackCheck = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
+      if (jumpAttackCheck !== currentTurn.player) {
+        console.log('in the if to let play continue on one spots')
+        return;
+      } else {
+        endingJump = true;
+        currentTurn.jump = false;
+        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+      }
     }
     else {
       console.log('in the else to end the jump move 1')
@@ -145,16 +152,32 @@ socket.on('additionalJump', (data) => {
     console.log('jumpmoves = 2');
     let jumpMovesLeft = document.getElementById(`${jumpMoves[0]}`).children.length;
     let jumpSpaceLeft = document.getElementById(`${regMoves[0]}`).children.length;
-    let jumpAttackLeft = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
 
     let jumpMovesRight = document.getElementById(`${jumpMoves[1]}`).children.length;
     let jumpSpaceRight = document.getElementById(`${regMoves[1]}`).children.length;
-    let jumpAttackRight = document.getElementById(`${regMoves[1]}`).firstElementChild.id;
 
-    if ((jumpMovesLeft === 0 && jumpSpaceLeft === 1 && jumpAttackLeft === currentTurn.player) || (jumpMovesRight === 0 && jumpSpaceRight === 1 && jumpAttackRight === currentTurn.player)) {
+    if (jumpMovesLeft === 0 && jumpSpaceLeft === 1) {
+      let jumpAttackLeft = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
       //something here
-      console.log('in the if to let play continue on two spots')
-
+      if (jumpAttackLeft !== currentTurn.player) {
+        return
+      }
+      else {
+        endingJump = true;
+        currentTurn.jump = false;
+        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+      }
+    }
+    if (jumpMovesRight === 0 && jumpSpaceRight === 1) {
+      let jumpAttackRight = document.getElementById(`${regMoves[1]}`).firstElementChild.id;
+      if (jumpAttackRight === currentTurn.player) {
+        return
+      }
+      else {
+        endingJump = true;
+        currentTurn.jump = false;
+        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
+      }
     }
     else {
       console.log('in the else to end the jump move 2')
