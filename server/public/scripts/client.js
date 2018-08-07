@@ -27,6 +27,7 @@ let currentTurn = {
   top: false,
   activeSpace: null,
   jump: false
+  
 }
 let regMoves = [];
 let jumpMoves = [];
@@ -83,7 +84,7 @@ socket.on('checkTheJump', jumpSpace => {
 })
 
 socket.on('finalMoveUpdate', data => {
-  console.log('final move data', data);
+  console.log('final move', data);
   if (data.player === 'p1') {
     let playerOnePiece = document.createElement('div');
     playerOnePiece.classList.add('game-piece');
@@ -239,8 +240,10 @@ function possTurnMovesHandler(data) {
 
 function endTheTurn(endTurn) {
   let finalSpace = endTurn.endSpace;
+
+  updateAllPlayers({finalSpace: finalSpace, player: currentTurn.player, activeSpace: currentTurn.activeSpace})
+
   if (endTurn.endJump === true) {
-    socket.emit('updateSpace', {finalSpace: finalSpace, player: currentTurn.player, activeSpace: currentTurn.activeSpace});
     for (let i = 0; i < regMoves.length; i++) {
       if (regMoves[i] != 0) {
         document.getElementById(regMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
@@ -258,7 +261,6 @@ function endTheTurn(endTurn) {
   }
   else {
     document.getElementById(endingSpace).appendChild(activePiece);
-    socket.emit('updateSpace', {finalSpace: finalSpace, player: currentTurn.player, activeSpace: currentTurn.activeSpace});
       for (let i = 0; i < regMoves.length; i++) {
         if (regMoves[i] != 0) {
           document.getElementById(regMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
@@ -275,5 +277,10 @@ function endTheTurn(endTurn) {
       changeTurn(endTurn.top);
   }
 }
+
+function updateAllPlayers(data) {
+  socket.emit('updateSpace', data);
+}
+
 
 
