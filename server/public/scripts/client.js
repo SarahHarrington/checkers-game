@@ -57,14 +57,78 @@ for (let i = 20; i <= 31; i++) {
 const playerOnePieces = [...document.querySelectorAll('.player-one-piece')];
 const playerTwoPieces = [...document.querySelectorAll('.player-two-piece')];
 
-function startTheGame() {
-  socket.emit('startingTheGame');
-}
-
 socket.on('gameTurn', top => {
   currentTurn.top = top;
   changeTurn(currentTurn.top);
 })
+
+socket.on('possTurnMoves', (data) => {
+  possTurnMovesHandler(data);
+})
+
+socket.on('additionalJump', (data) => {
+  additionalJumpHandler(data);
+})
+
+socket.on('playerTurnEnds', (turnEnds) => {
+  endTheTurn(turnEnds);
+})
+
+socket.on('playerEndingJumpTurn', (turnEnds) => {
+  endTheTurn(turnEnds);
+})
+
+socket.on('checkTheJump', jumpSpace => {
+  checkTheJumpSpace(jumpSpace);
+})
+
+socket.on('finalMoveUpdate', data => {
+  console.log('final move data', data);
+  if (data.player === 'p1') {
+    let playerOnePiece = document.createElement('div');
+    playerOnePiece.classList.add('game-piece');
+    playerOnePiece.classList.add('player-one-piece');
+    playerOnePiece.setAttribute('id', 'p1');
+    document.getElementById(data.finalSpace).appendChild(playerOnePiece);
+  }
+  if (data.player === 'p2') {
+    let playerTwoPiece = document.createElement('div');
+    playerTwoPiece.classList.add('game-piece');
+    playerTwoPiece.classList.add('player-two-piece');
+    playerTwoPiece.setAttribute('id', 'p2');
+    document.getElementById(data.finalSpace).appendChild(playerTwoPiece);
+  }
+})
+
+function dragoverHandler(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+}
+
+function startTheGame() {
+  socket.emit('startingTheGame');
+}
+
+function dragStartHandler(e) {
+  activePiece = e.target;
+  currentTurn.player = e.target.id;
+  currentTurn.activeSpace = e.target.parentElement.id;
+  socket.emit('moving', currentTurn);
+}
+
+function dropHandler(e) {
+  endingSpace = e.target.id;
+  e.preventDefault();
+  let = childCheck = document.getElementById(`${endingSpace}`);
+
+  if (childCheck.children.length >= 1 || e.target.classList.contains('game-piece')) {
+    gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+  }
+  else {
+    socket.emit('checkIfJumping', endingSpace);
+    childCheck = null;
+  }
+}
 
 function changeTurn(top) {
   if (top === true) {
@@ -93,64 +157,33 @@ function changeTurn(top) {
   }
 }
 
-function dragStartHandler(e) {
-  activePiece = e.target;
-  currentTurn.player = e.target.id;
-  currentTurn.activeSpace = e.target.parentElement.id;
-  socket.emit('moving', currentTurn);
+function checkTheJumpSpace(jumpSpace) {
+  let jumpingVerify = document.getElementById(jumpSpace); 
+    let pieceCaptured = jumpingVerify.firstChild;
+    if (jumpingVerify.children.length === 0 || pieceCaptured.id === activePiece.id) { 
+      gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+    }
+
+    else {
+      jumpingVerify.removeChild(pieceCaptured);
+      capturedPieces.appendChild(pieceCaptured);
+      document.getElementById(endingSpace).appendChild(activePiece);
+      currentTurn.activeSpace = endingSpace;
+      currentTurn.jump = true;
+      socket.emit('jumpingMoving', currentTurn);
+    }
 }
 
-socket.on('possTurnMoves', (data) => {
-  console.log('possible turn moves', data);
-  regMoves = [...data.reg];
-  jumpMoves = [...data.jump];
-  regMoves.forEach(space => {
-    console.log('reg space in poss turns', space)
-    document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-  })
-  jumpMoves.forEach(space => {
-    console.log('jump space in poss turns', space)
-    document.getElementById(space).setAttribute('ondrop', 'dropHandler(event)');
-  })
-})
-
-socket.on('additionalJump', (data) => {
+function additionalJumpHandler(data) {
   regMoves = [...data.reg];
   jumpMoves = [...data.jump];
   
   if (jumpMoves.length === 0) {
-    console.log('in the overall else checking additional jumps')
     endingJump = true;
     socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
   }
 
-  if (jumpMoves.length === 1) {
-    console.log('jumpmoves = 1')
-
-    let jumpMoveCheck = document.getElementById(`${jumpMoves[0]}`).children.length;
-    let jumpRegCheck = document.getElementById(`${regMoves[0]}`).children.length;
-
-    if (jumpMoveCheck === 0 && jumpRegCheck === 1) {
-      let jumpAttackCheck = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
-      if (jumpAttackCheck !== currentTurn.player) {
-        console.log('in the if to let play continue on one spots')
-        return;
-      } else {
-        endingJump = true;
-        currentTurn.jump = false;
-        socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-      }
-    }
-    else {
-      console.log('in the else to end the jump move 1')
-      endingJump = true;
-      currentTurn.jump = false;
-      socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
-    }
-  }
-
   if (jumpMoves.length === 2) {
-    console.log('jumpmoves = 2');
     let jumpMovesLeft = document.getElementById(`${jumpMoves[0]}`).children.length;
     let jumpSpaceLeft = document.getElementById(`${regMoves[0]}`).children.length;
 
@@ -160,7 +193,7 @@ socket.on('additionalJump', (data) => {
     if (jumpMovesLeft === 0 && jumpSpaceLeft === 1) {
       let jumpAttackLeft = document.getElementById(`${regMoves[0]}`).firstElementChild.id;
       //something here
-      if (jumpAttackLeft !== currentTurn.player) {
+      if (jumpAttackLeft != currentTurn.player) {
         return
       }
       else {
@@ -181,75 +214,43 @@ socket.on('additionalJump', (data) => {
       }
     }
     else {
-      console.log('in the else to end the jump move 2')
       endingJump = true;
       currentTurn.jump = false;
       socket.emit('endTheJumpTurn', {endingJump: endingJump, endSpace: endingSpace});
     }
   }
-})
-
-socket.on('playerTurnEnds', (turnEnds) => {
-  endTheTurn(turnEnds);
-})
-
-socket.on('playerEndingJumpTurn', (turnEnds) => {
-  endTheTurn(turnEnds);
-})
-
-socket.on('checkTheJump', jumpSpace => {
-  checkTheJumpSpace(jumpSpace);
-})
-
-function dragoverHandler(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = "move";
 }
 
-function dropHandler(e) {
-  endingSpace = e.target.id;
-  e.preventDefault();
-  let = childCheck = document.getElementById(`${endingSpace}`);
+function possTurnMovesHandler(data) {
+  regMoves = [...data.reg];
+  jumpMoves = [...data.jump];
 
-  if (childCheck.children.length >= 1 || e.target.classList.contains('game-piece')) {
-    console.log('in the child check')
-    gameMessage.innerHTML = '<p>You can\'t make that move</p>';
-  }
-  else {
-    socket.emit('checkIfJumping', endingSpace);
-    //this is for regular turns when the play ends.
-  childCheck = null;
-  }
-} 
-
-function checkTheJumpSpace(jumpSpace) {
-  let jumpingVerify = document.getElementById(jumpSpace); 
-    let pieceCaptured = jumpingVerify.firstChild;
-    if (jumpingVerify.children.length === 0 || pieceCaptured.id === activePiece.id) { 
-      console.log('in the check jump space')
-      gameMessage.innerHTML = '<p>You can\'t make that move</p>';
+  for (let i = 0; i < regMoves.length; i++) {
+    if (regMoves[i] != 0) {
+      document.getElementById(regMoves[i]).setAttribute('ondrop', 'dropHandler(event)');
     }
-
-    else {
-      jumpingVerify.removeChild(pieceCaptured);
-      capturedPieces.appendChild(pieceCaptured);
-      document.getElementById(endingSpace).appendChild(activePiece);
-      currentTurn.activeSpace = endingSpace;
-      currentTurn.jump = true;
-      socket.emit('jumpingMoving', currentTurn);
+  }
+  for (let i = 0; i < jumpMoves.length; i++) {
+    if (regMoves[i] != 0) {
+      document.getElementById(jumpMoves[i]).setAttribute('ondrop', 'dropHandler(event)');
     }
+  }
 }
 
 function endTheTurn(endTurn) {
-  console.log('ending the turn', endTurn)
   let finalSpace = endTurn.endSpace;
   if (endTurn.endJump === true) {
-    regMoves.forEach( (space) => {
-      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
-    })
-    jumpMoves.forEach( (space) => {
-      document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
-    })
+    socket.emit('updateSpace', {finalSpace: finalSpace, player: currentTurn.player, activeSpace: currentTurn.activeSpace});
+    for (let i = 0; i < regMoves.length; i++) {
+      if (regMoves[i] != 0) {
+        document.getElementById(regMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
+      }
+    }
+    for (let i = 0; i < jumpMoves.length; i++) {
+      if (regMoves[i] != 0) {
+        document.getElementById(jumpMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
+      }
+    }
     currentTurn.player = null;
     currentTurn.activeSpace = null;
     [endingJump, activeSpace, activePiece] = [false, null, null];
@@ -257,12 +258,17 @@ function endTheTurn(endTurn) {
   }
   else {
     document.getElementById(endingSpace).appendChild(activePiece);
-      regMoves.forEach( (space) => {
-        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
-      })
-      jumpMoves.forEach( (space) => {
-        document.getElementById(space).removeAttribute('ondrop', 'dropHandler(event)');
-      })
+    socket.emit('updateSpace', {finalSpace: finalSpace, player: currentTurn.player, activeSpace: currentTurn.activeSpace});
+      for (let i = 0; i < regMoves.length; i++) {
+        if (regMoves[i] != 0) {
+          document.getElementById(regMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
+        }
+      }
+      for (let i = 0; i < jumpMoves.length; i++) {
+        if (regMoves[i] != 0) {
+          document.getElementById(jumpMoves[i]).removeAttribute('ondrop', 'dropHandler(event)');
+        }
+      }
       currentTurn.player = null;
       currentTurn.activeSpace = null;
       [endingJump, activeSpace, activePiece] = [false, null, null];

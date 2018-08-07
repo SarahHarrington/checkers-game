@@ -45,8 +45,6 @@ io.on('connection', socket => {
     }
   })
 
-  
-
   socket.on('checkIfJumping', endSpace => {
     const isJumping = possTurns.jump.filter(poss => (parseInt(poss) === parseInt(endSpace)));
     let indexOfJumped = possTurns.jump.findIndex(possTurn => possTurn === parseInt(endSpace));
@@ -66,6 +64,10 @@ io.on('connection', socket => {
     io.emit('playerEndingJumpTurn', {endJump: endJump.endingJump, top: top, endSpace: endJump.endSpace});
   })
 
+  socket.on('updateSpace', data => {
+    console.log('data for the final space', data);
+    socket.broadcast.emit('finalMoveUpdate', data);
+  })
 
 });
 
